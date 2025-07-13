@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Basic -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- Mobile Metas -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Vehicle Damage Detection</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" type="text/css" href="/static/css/bootstrap.css" />
+    <!-- Custom styles for this template -->
+    <link href="/static/css/style.css" rel="stylesheet" />
+    <style>
+        .container {
+            margin-top: 30px;
+        }
+
+        h1, h2, h3 {
+            margin-bottom: 20px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .table {
+            margin-top: 20px;
+        }
+
+        img {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 5px;
+            margin-top: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .header_section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .navbar-brand img {
+            margin-right: 10px;
+        }
+
+        #prediction-form {
+            margin-top: 10px;
+        }
+
+        #prediction-results {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hero_area">
+        <!-- Header section starts -->
+        <header class="header_section">
+            <div class="header_top">
+                <div class="container-fluid">
+                    <div class="contact_nav">
+                        <!-- You can add contact info here if needed -->
+                    </div>
+                </div>
+            </div>
+            <div class="header_bottom">
+                <div class="container-fluid">
+                    <nav class="navbar navbar-expand-lg custom_nav-container">
+                        <a class="navbar-brand" href="#">
+                            <img src="/static/images/icons8-car-48.png" alt="Carint Logo">
+                            Automated Vehicle Damage Detection & Cost Estimator for Insurance Companies
+                        </a>
+                        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                            <span class=""> </span>
+                        </button>
+                        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                            <ul class="navbar-nav ml-auto">
+                                <li class="nav-item active">
+                                    <a class="nav-link" href="/home">Home <span class="sr-only">(current)</span></a>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Predict
+                                    </a>
+                                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                        <a class="dropdown-item" href="{{ url_for('upload') }}">Damage and Cost Prediction</a>
+                                    </div>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="/logout">Logout</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </header>
+        <!-- Header section ends -->
+    </div>
+
+    <section class="inner_page">
+        <div class="container">
+            <center>
+                <div id="prediction-results">
+                    {% if image_path %}
+                        <h2>Predicted Image:</h2>
+                        <img src="{{ url_for('static', filename='output.jpg') }}" alt="Predicted Image" style="max-width: 100%; height: auto;">
+                    {% endif %}
+                
+                    {% if repair_cost %}
+                        <h3>Estimated Repair Cost: ₹{{ repair_cost }}</h3>
+                    {% endif %}
+                
+                    {% if damage_details %}
+                        <h3>Damage Details:</h3>
+                        <table class="table table-bordered table-hover">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>Part</th>
+                                    <th>Repair Cost (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for damage in damage_details %}
+                                    <tr>
+                                        <td>{{ damage.damage_type }}</td>
+                                        <td>{{ damage.cost }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endif %}
+                </div>
+            </center>
+
+            <form id="prediction-form" action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+                <h1 class="text-center">Vehicle Damage Prediction</h1>
+
+                <!-- Vehicle Type Dropdown -->
+                <div class="form-group">
+                    <label for="vehicle_type">Select Vehicle Type</label>
+                    <select id="vehicle_type" name="vehicle_type" class="form-control" required onchange="showBrandDropdown()">
+                        <option value="">Select Vehicle Type</option>
+                        <option value="2wheeler">2 Wheeler</option>
+                        <option value="4wheeler">4 Wheeler</option>
+                        <option value="6wheeler">6 Wheeler</option>
+                    </select>
+                </div>
+
+                <!-- Brand Dropdown for Vehicle Type -->
+                <div class="form-group">
+                    <label for="vehicle_brand">Select Vehicle Brand</label>
+                    <select id="vehicle_brand" name="vehicle_brand" class="form-control" required>
+                        <option value="">Select a Vehicle Type first</option>
+                    </select>
+                </div>
+
+                <!-- Image Upload -->
+                <div class="form-group">
+                    <label for="image_file">Upload Vehicle Image</label>
+                    <input type="file" id="image_file" name="image_file" class="form-control" accept="image/*" required onchange="checkSubmitButton()">
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary" id="submit-button" style="display: none;">Submit</button>
+            </form>
+        </div>
+    </section>
+
+    <script>
+        // Show the relevant brand dropdown based on vehicle type
+        function showBrandDropdown() {
+            var vehicleType = document.getElementById('vehicle_type').value;
+            var brandDropdown = document.getElementById('vehicle_brand');
+
+            // Clear previous brand options
+            brandDropdown.innerHTML = '';
+
+            // Add default option
+            var defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.text = 'Select a Brand';
+            brandDropdown.appendChild(defaultOption);
+
+            // Populate brand options based on the selected vehicle type
+            var brands = [];
+            if (vehicleType === '2wheeler') {
+                brands = ['Hero Splendor', 'Honda Activa', 'Honda Shine',"Bajaj Pulsar","TVS Jupiter"];
+            } else if (vehicleType === '4wheeler') {
+                brands = ['Maruti Suzuki: Swift', 'Tata Motors: Nexon', 'Hyundai: Creta',"Mahindra: Scorpio","Toyota: Innova Crysta"];
+            } else if (vehicleType === '6wheeler') {
+                brands = ['Bharat Benz 1923C Tipper', 'Tata LPT 1916', 'Tata Signa 1918.k','Mahindra Furio 16 Truck','Bharat Benz 1415RE Truck'];
+            }
+
+            brands.forEach(function(brand) {
+                var option = document.createElement('option');
+                option.value = brand;
+                option.text = brand;
+                brandDropdown.appendChild(option);
+            });
+
+            // Re-check the form to see if the submit button should be enabled
+            checkSubmitButton();
+        }
+
+        // Enable the submit button if all required fields are filled
+        function checkSubmitButton() {
+            var vehicleType = document.getElementById('vehicle_type').value;
+            var brand = document.getElementById('vehicle_brand').value;
+            var imageFile = document.getElementById('image_file').files.length > 0;
+            var submitButton = document.getElementById('submit-button');
+
+            // Enable submit button if all fields are filled
+            if (vehicleType && brand && imageFile) {
+                submitButton.style.display = 'block';
+            } else {
+                submitButton.style.display = 'none';
+            }
+        }
+
+        // Initialize on page load
+        window.onload = function() {
+            showBrandDropdown();
+        };
+    </script>
+
+</body>
+</html>
