@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: vehicle-damage-detection
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --timeout 120 --workers 1
+    plan: free
+    envVars:
+      - key: PORT
+        value: 10000

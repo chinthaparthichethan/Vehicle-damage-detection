@@ -140,11 +140,16 @@ PARTS_COST = {
     }
 }
 
-def load_yolo_model(vehicle_type):
-    model_path = MODEL_PATHS.get(vehicle_type)
-    if model_path:
-        return YOLO(model_path)
-    return None
+# def load_yolo_model(vehicle_type):
+#     model_path = MODEL_PATHS.get(vehicle_type)
+#     if model_path:
+#         return YOLO(model_path)
+#     return None
+# Load YOLO models once globally to avoid reloading every time
+YOLO_MODELS = {
+    vt: YOLO(path) for vt, path in MODEL_PATHS.items()
+}
+
 
 def draw_bounding_boxes(image, results, class_names):
     
@@ -188,7 +193,7 @@ def upload():
             flash('Invalid vehicle type, brand, or file.', 'danger')
             return render_template('upload.html')
 
-        model = load_yolo_model(vehicle_type)
+        model = YOLO_MODELS.get(vehicle_type)
         if not model:
             flash('Failed to load YOLO model.', 'danger')
             return render_template('upload.html')
@@ -235,5 +240,5 @@ def logout():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 10000))
     app.run(host='0.0.0.0', port=port)
