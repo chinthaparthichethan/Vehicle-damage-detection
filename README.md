@@ -9,10 +9,10 @@ This project uses **YOLOv8**, a state-of-the-art deep learning model, to automat
 ##  Technologies Used
 
 -  Object Detection: [YOLOv8](https://github.com/ultralytics/ultralytics)
--  Backend: Python + Flask / Django
+-  Backend: Python + Flask 
 - Image Processing: OpenCV, PIL
 -  Deep Learning: PyTorch
--  Database: SQLite / MySQL
+-  Database: SQLite 
 -  Cost Mapping: Dictionary-based part-pricing
 -  Packaging: `requirements.txt`, `model.pt` (YOLOv8)
 
@@ -29,5 +29,4 @@ This project uses **YOLOv8**, a state-of-the-art deep learning model, to automat
 
 ---
 
-##  Project Structure
 
